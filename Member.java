@@ -8,10 +8,16 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Member {
 
+  private static final AtomicInteger GLOBAL_PROPOSAL_NUMBER = new AtomicInteger(
+    0
+  );
+
   private static final ExecutorService executor = Executors.newCachedThreadPool();
+
   private int id;
   private List<Member> members;
   private final int latencyMs; // base latency in milliseconds
@@ -48,5 +54,17 @@ public class Member {
         }
       }
     });
+  }
+
+  public void propose(String value) {
+    int proposalNumber = GLOBAL_PROPOSAL_NUMBER.incrementAndGet();
+    System.out.println(
+      "Member " +
+      id +
+      " proposing value: " +
+      value +
+      " with proposal number: " +
+      proposalNumber
+    );
   }
 }
