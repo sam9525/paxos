@@ -175,6 +175,13 @@ public class Member {
       // Include self in the count (proposer counts as accepted)
       int acceptedCount = countSuccessfulFutures(acceptFutures);
       System.out.println("Accepts received: " + acceptedCount);
+      if (acceptedCount > members.size() / 2) {
+        System.out.println("Consensus reached on: " + value);
+      } else {
+        System.out.println(
+          "Consensus not reached. M" + id + " did not get elected"
+        );
+      }
     } else {
       System.out.println(
         "Not enough promises received. M" + id + " did not get elected"
