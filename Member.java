@@ -177,6 +177,7 @@ public class Member {
       System.out.println("Accepts received: " + acceptedCount);
       if (acceptedCount > members.size() / 2) {
         System.out.println("Consensus reached on: " + value);
+        learn(new Proposal(proposalNumber, value));
       } else {
         System.out.println(
           "Consensus not reached. M" + id + " did not get elected"
@@ -324,6 +325,20 @@ public class Member {
       System.out.println("Error communicating with member " + memberId + e);
     }
     return false;
+  }
+
+  /**
+   * Updates the member's accepted proposal and logs the learned consensus value.
+   * This method is called when a consensus is reached, and the member learns the agreed-upon value.
+   *
+   * @param proposal The proposal that has been accepted by the majority of members.
+   */
+  private void learn(Proposal proposal) {
+    this.acceptedProposal = proposal;
+    System.out.println(
+      "Member " + id + " learned consensus value: " + proposal.value
+    );
+    // Implement any necessary actions based on the learned value
   }
 
   /**
