@@ -31,6 +31,7 @@ public class Member {
 
   private int promisedProposal = -1;
   private Set<Integer> promisedMembers = new HashSet<>();
+  private Proposal acceptedProposal = null;
 
   private ServerSocket serverSocket;
   private volatile boolean isRunning = true;
@@ -112,6 +113,24 @@ public class Member {
             );
           }
           break;
+        case "ACCEPT":
+          if (message.proposalNumber >= promisedProposal) {
+            acceptedProposal =
+              new Proposal(message.proposalNumber, message.value);
+            out.println(
+              new Message(
+                "ACCEPTED",
+                acceptedProposal.proposalNumber,
+                acceptedProposal.value
+              )
+                .toString()
+            );
+          } else {
+            out.println(
+              new Message("REFUSE", message.proposalNumber, "").toString()
+            );
+          }
+          break;
         default:
           System.out.println("Unknown message type: " + message.type);
       }
@@ -148,6 +167,19 @@ public class Member {
     // counts promises
     int promises = countSuccessfulFutures(prepareFutures);
     System.out.println("Promises received: " + promises);
+    if (promises > members.size() / 2) {
+      List<Future<Boolean>> acceptFutures = sendAcceptToAll(
+        proposalNumber,
+        value
+      );
+      // Include self in the count (proposer counts as accepted)
+      int acceptedCount = countSuccessfulFutures(acceptFutures);
+      System.out.println("Accepts received: " + acceptedCount);
+    } else {
+      System.out.println(
+        "Not enough promises received. M" + id + " did not get elected"
+      );
+    }
   }
 
   /**
@@ -173,6 +205,31 @@ public class Member {
         responses.add(response);
       }
     }
+    return responses;
+  }
+
+  /**
+   * Sends a ACCEPT message to all other members and collects their responses.
+   *
+   * @param proposalNumber The proposal number to include in the ACCEPT message.
+   * @param value The value to include in the ACCEPT message.
+   * @return A list of futures representing the responses from other members.
+   */
+  private List<Future<Boolean>> sendAcceptToAll(
+    int proposalNumber,
+    String value
+  ) {
+    List<Future<Boolean>> responses = new ArrayList<>();
+
+    for (Member member : members) {
+      if (member.id != this.id && promisedMembers.contains(member.id)) {
+        Future<Boolean> response = executor.submit(() ->
+          sendAccept(member.id, proposalNumber, value)
+        );
+        responses.add(response);
+      }
+    }
+
     return responses;
   }
 
@@ -205,6 +262,18 @@ public class Member {
    */
   private boolean sendPrepare(int memberId, int proposalNumber) {
     return sendMessage(memberId, new Message("PREPARE", proposalNumber, ""));
+  }
+
+  /**
+   * Sends a accept message to a specified member.
+   *
+   * @param memberId The ID of the member to send the message to.
+   * @param proposalNumber The proposal number of the message.
+   * @param value The value of the message.
+   * @return true if the message is successfully sent, false otherwise.
+   */
+  private boolean sendAccept(int memberId, int proposalNumber, String value) {
+    return sendMessage(memberId, new Message("ACCEPT", proposalNumber, value));
   }
 
   /**
