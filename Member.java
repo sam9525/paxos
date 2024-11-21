@@ -30,8 +30,8 @@ public class Member {
   private final Random random = new Random();
 
   private int promisedProposal = -1;
-  private Set<Integer> promisedMembers = new HashSet<>();
-  private Proposal acceptedProposal = null;
+  private final Set<Integer> promisedMembers = new HashSet<>();
+  private volatile Proposal acceptedProposal = null;
 
   private ServerSocket serverSocket;
   private volatile boolean isRunning = true;
