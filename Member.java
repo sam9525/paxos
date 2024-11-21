@@ -131,6 +131,21 @@ public class Member {
             );
           }
           break;
+        case "LEARN":
+          if (
+            acceptedProposal == null ||
+            message.proposalNumber >= acceptedProposal.proposalNumber
+          ) {
+            acceptedProposal =
+              new Proposal(message.proposalNumber, message.value);
+            System.out.println(
+              "Member " + id + " learned consensus value: " + message.value
+            );
+          }
+          out.println(
+            new Message("LEARNED", message.proposalNumber, "").toString()
+          );
+          break;
         default:
           System.out.println("Unknown message type: " + message.type);
       }
@@ -176,8 +191,8 @@ public class Member {
       int acceptedCount = countSuccessfulFutures(acceptFutures);
       System.out.println("Accepts received: " + acceptedCount);
       if (acceptedCount > members.size() / 2) {
-        System.out.println("Consensus reached on: " + value);
         learn(new Proposal(proposalNumber, value));
+        System.out.println("Consensus reached on: " + value);
       } else {
         System.out.println(
           "Consensus not reached. M" + id + " did not get elected"
@@ -242,6 +257,31 @@ public class Member {
   }
 
   /**
+   * Sends a LEARN message to all other members and collects their responses.
+   *
+   * @param proposalNumber The proposal number to include in the LEARN message.
+   * @param value The value to include in the LEARN message.
+   * @return A list of futures representing the responses from other members.
+   */
+  private List<Future<Boolean>> sendLearnedToAll(
+    int proposalNumber,
+    String value
+  ) {
+    List<Future<Boolean>> responses = new ArrayList<>();
+
+    for (Member member : members) {
+      if (member.id != this.id) {
+        Future<Boolean> response = executor.submit(() ->
+          sendLearned(member.id, proposalNumber, value)
+        );
+        responses.add(response);
+      }
+    }
+
+    return responses;
+  }
+
+  /**
    * Counts the number of successful futures within a given timeout.
    *
    * @param futures A list of futures to check.
@@ -285,6 +325,18 @@ public class Member {
   }
 
   /**
+   * Sends a learn message to a specified member.
+   *
+   * @param memberId The ID of the member to send the message to.
+   * @param proposalNumber The proposal number of the message.
+   * @param value The value of the message.
+   * @return true if the message is successfully sent, false otherwise.
+   */
+  private boolean sendLearned(int memberId, int proposalNumber, String value) {
+    return sendMessage(memberId, new Message("LEARN", proposalNumber, value));
+  }
+
+  /**
    * Sends a message to a specified member and returns true if the message is accepted or promised, false otherwise.
    *
    * @param memberId The ID of the member to send the message to.
@@ -318,7 +370,9 @@ public class Member {
         }
         // Return true if the member promises or accepts the message
         return (
-          response.startsWith("PROMISE") || response.startsWith("ACCEPTED")
+          response.startsWith("PROMISE") ||
+          response.startsWith("ACCEPTED") ||
+          response.startsWith("LEARN")
         );
       }
     } catch (IOException e) {
@@ -328,17 +382,28 @@ public class Member {
   }
 
   /**
-   * Updates the member's accepted proposal and logs the learned consensus value.
-   * This method is called when a consensus is reached, and the member learns the agreed-upon value.
+   * This method is responsible for learning a consensus value and broadcasting it to other members.
+   * It updates the accepted proposal, sends LEARN messages to all members, and counts the responses.
    *
-   * @param proposal The proposal that has been accepted by the majority of members.
+   * @param proposal The proposal to be learned and broadcasted.
    */
   private void learn(Proposal proposal) {
     this.acceptedProposal = proposal;
     System.out.println(
       "Member " + id + " learned consensus value: " + proposal.value
     );
-    // Implement any necessary actions based on the learned value
+
+    // send LEARN messages and wait for responses
+    List<Future<Boolean>> learnResponses = sendLearnedToAll(
+      proposal.proposalNumber,
+      proposal.value
+    );
+
+    // wait for responses (optional, but helps ensure message delivery)
+    int learnedCount = countSuccessfulFutures(learnResponses) + 1;
+    System.out.println(
+      "Learn message acknowledged by " + learnedCount + " members"
+    );
   }
 
   /**

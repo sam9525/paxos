@@ -24,6 +24,8 @@ public class Paxos {
     Thread.sleep(1000);
 
     councilMembers.get(0).propose("M1 for President");
+    Thread.sleep(100);
+    councilMembers.get(4).propose("M5 for President");
 
     System.exit(0);
   }
