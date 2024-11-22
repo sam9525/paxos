@@ -107,7 +107,7 @@ public class Member {
         case "PREPARE":
           if (
             message.proposalNumber > promisedProposal &&
-            random.nextDouble() > randomResponse
+            random.nextDouble() < randomResponse
           ) {
             promisedProposal = message.proposalNumber;
             out.println(
@@ -122,7 +122,7 @@ public class Member {
         case "ACCEPT":
           if (
             message.proposalNumber >= promisedProposal &&
-            random.nextDouble() > randomResponse
+            random.nextDouble() < randomResponse
           ) {
             acceptedProposal =
               new Proposal(message.proposalNumber, message.value);
