@@ -14,7 +14,7 @@ public class Paxos {
 
       // random network conditions
       int randomLatency = 50 + random.nextInt(200); // Random latency between 50-250ms
-      member = new Member(i, councilMembers, randomLatency, 1.0);
+      member = new Member(i, councilMembers, randomLatency, 1.0, 1.0);
 
       member.startServer();
       councilMembers.add(member);

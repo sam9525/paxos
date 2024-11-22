@@ -28,6 +28,7 @@ public class Member {
   private final int latencyMs; // base latency in milliseconds
   private final double reliability; // probability of successful transmission (0.0 to 1.0)
   private final Random random = new Random();
+  private final double randomResponse;
 
   private int promisedProposal = -1;
   private final Set<Integer> promisedMembers = new HashSet<>();
@@ -40,12 +41,14 @@ public class Member {
     int id,
     List<Member> members,
     int latencyMs,
-    double reliability
+    double reliability,
+    double randomResponse
   ) {
     this.id = id;
     this.members = members;
     this.latencyMs = latencyMs;
     this.reliability = reliability;
+    this.randomResponse = randomResponse;
   }
 
   // start all members server
@@ -102,7 +105,10 @@ public class Member {
 
       switch (message.type) {
         case "PREPARE":
-          if (message.proposalNumber > promisedProposal) {
+          if (
+            message.proposalNumber > promisedProposal &&
+            random.nextDouble() > randomResponse
+          ) {
             promisedProposal = message.proposalNumber;
             out.println(
               new Message("PROMISE", promisedProposal, "").toString()
@@ -114,7 +120,10 @@ public class Member {
           }
           break;
         case "ACCEPT":
-          if (message.proposalNumber >= promisedProposal) {
+          if (
+            message.proposalNumber >= promisedProposal &&
+            random.nextDouble() > randomResponse
+          ) {
             acceptedProposal =
               new Proposal(message.proposalNumber, message.value);
             out.println(
