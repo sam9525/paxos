@@ -2,47 +2,11 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Before;
 import org.junit.Test;
 
 public class Paxos_Test {
 
   private List<Member> members;
-
-  // @Before
-  // public void setUp() {
-  //   members = new ArrayList<>();
-  //   // create 9 members
-  //   for (int i = 1; i <= 9; i++) {
-  //     Member member = new Member(i, members, 0, 1.0, 1.0);
-  //     member.startServer();
-  //     members.add(member);
-  //     try {
-  //       Thread.sleep(100);
-  //     } catch (InterruptedException e) {
-  //       e.printStackTrace();
-  //     }
-  //   }
-  // }
-
-  // @Test
-  // public void testMessageCreation() {
-  //   Message message = new Message("PREPARE", 1, "test value");
-  //   assertEquals("PREPARE", message.type);
-  //   assertEquals(1, message.proposalNumber);
-  //   assertEquals("test value", message.value);
-  // }
-
-  // @Test
-  // public void testMessageSerialization() {
-  //   Message original = new Message("PREPARE", 1, "test value");
-  //   String serialized = original.toString();
-  //   Message deserialized = Message.fromString(serialized);
-
-  //   assertEquals(original.type, deserialized.type);
-  //   assertEquals(original.proposalNumber, deserialized.proposalNumber);
-  //   assertEquals(original.value, deserialized.value);
-  // }
 
   @Test
   public void testSingleProposal() throws InterruptedException {
