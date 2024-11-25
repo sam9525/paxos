@@ -114,3 +114,6 @@ Simulates network conditions by introducing latency and potential network failur
 private final int latencyMs;
 private final double reliability;
 ```
+
+[!NOTE]
+The testing should be run separately.
