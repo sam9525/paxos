@@ -439,4 +439,25 @@ public class Member {
       }
     }
   }
+
+  public Proposal getAcceptedProposal() {
+    return acceptedProposal;
+  }
+
+  public int getPromisedProposal() {
+    return promisedProposal;
+  }
+
+  public void stopServer() {
+    isRunning = false;
+    try {
+      if (serverSocket != null && !serverSocket.isClosed()) {
+        serverSocket.close();
+      }
+    } catch (IOException e) {
+      System.out.println(
+        "Error closing server socket for member " + id + ": " + e
+      );
+    }
+  }
 }
